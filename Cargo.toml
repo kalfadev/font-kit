@@ -52,8 +52,18 @@ core-foundation = "0.9"
 core-graphics = "0.23"
 core-text = "20.1.0"
 
-[target.'cfg(not(any(target_family = "windows", target_os = "macos", target_os = "ios")))'.dependencies]
+[target.'cfg(not(any(target_family = "windows", target_os = "macos", target_os = "ios", target_os = "android")))'.dependencies]
 freetype-sys = "0.23"
+
+# Android: the NDK toolchain ships no system libfreetype, so dynamic
+# linking is not viable. freetype-sys's build script also skips
+# pkg-config probing for Android targets, which leaves `FT_*` symbols
+# undefined and causes `dlopen` failures at runtime when font-kit is
+# loaded into an Android app. Enable freetype-sys's `bundled` feature
+# so the FreeType C sources shipped with the crate are compiled in
+# statically, removing the runtime dependency on a system library.
+[target.'cfg(target_os = "android")'.dependencies]
+freetype-sys = { version = "0.23", features = ["bundled"] }
 
 [target.'cfg(not(any(target_family = "windows", target_os = "android", target_os = "macos", target_os = "ios", target_arch = "wasm32", target_env = "ohos")))'.dependencies]
 yeslogic-fontconfig-sys = "6.0"
